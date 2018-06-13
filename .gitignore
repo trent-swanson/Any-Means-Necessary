@@ -34,3 +34,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+Any Means Necessary/ProjectSettings/
+Any Means Necessary/UnityPackageManager/
