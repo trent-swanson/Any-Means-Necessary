@@ -4,6 +4,7 @@ using UnityEngine;
 
 public static class GameManager {
 
+    //Global reference to all tiles in level
     public static GameObject[,] grid;
 
 }
