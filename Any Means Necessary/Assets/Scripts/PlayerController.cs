@@ -4,8 +4,20 @@ using UnityEngine;
 
 public class PlayerController : Agent {
 
+    [Space]
+    [Space]
+    [Header("Available Actions")]
+    public bool hide;
+
     void Awake() {
         Init();
+    }
+
+    void Start() {
+        if (hide) {
+            HideAction hideAction = new HideAction(this, "Hide");
+            actionList.Add(hideAction);
+        }
     }
 
     void Update() {
@@ -15,7 +27,7 @@ public class PlayerController : Agent {
         if (!turn)
             return;
 
-        if (!moving) {
+        if (!moving && unitActions > 0) {
             FindSelectableTiles();
             MouseClick();
         }
@@ -36,6 +48,20 @@ public class PlayerController : Agent {
                     }
                 }
             }
+        }
+    }
+
+    //Actions
+    class HideAction : Actions {
+        PlayerController unit;
+
+        public HideAction(PlayerController p_unit, string p_name) {
+            unit = p_unit;
+            actionName = p_name;
+        }
+
+        public override void Action() {
+            Debug.Log("HIDE");
         }
     }
 }

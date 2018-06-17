@@ -8,6 +8,7 @@ public class Tile : MonoBehaviour {
     public bool current = false;
     public bool target = false;
     public bool selectable = false;
+    public GameObject occupingObject;
 
     public List<Tile> adjacencyList = new List<Tile>();
 
@@ -78,7 +79,7 @@ public class Tile : MonoBehaviour {
     public void CheckAllIfOccupied() {
         RaycastHit hit;
         if (Physics.Raycast(new Vector3(transform.position.x, transform.position.y - 5, transform.position.z), Vector3.up, out hit, 10)) {
-            if (hit.transform.tag == "Obsticle" || hit.transform.tag == "Enemy") {
+            if (hit.transform.tag == "Obsticle") {
                 walkable = false;
             }
             else if (hit.transform.tag == "Player") {
@@ -100,5 +101,17 @@ public class Tile : MonoBehaviour {
         distance = 0;
 
         fCost = gCost = hCost = 0;
+    }
+
+    public void CheckIfOccupied() {
+        RaycastHit hit;
+        if (Physics.Raycast(new Vector3(transform.position.x, transform.position.y - 5, transform.position.z), Vector3.up, out hit, 10)) {
+            if (hit.transform.tag == "Player" || hit.transform.tag == "NPC") {
+                occupingObject = hit.transform.gameObject;
+            }
+            else {
+                occupingObject = null;
+            }
+        }
     }
 }

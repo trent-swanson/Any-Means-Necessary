@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Agent : MonoBehaviour {
 
+	public List<Actions> actionList = new List<Actions>();
+
+	[Header("Debugging Only")]
 	[Tooltip("Do Not Assign")]
 	public bool turn = false;
 	[Tooltip("Do Not Assign")]
@@ -17,11 +20,17 @@ public class Agent : MonoBehaviour {
 
 	[Tooltip("Do Not Assign")]
 	public bool moving = false;
+	[Tooltip("Do Not Assign")]
+	public Tile actualTargetTile;
+
 	[Space]
 	[Space]
 	[Header("Unit Editable Variables")]
+	[Tooltip("# of actions unit can perform")]
+	public int numberOfActions = 2;
 	[Tooltip("# of tiles unit can move")]
 	public int move = 2;
+	int moveAmount;
 	[Tooltip("# of tiles unit can sprint to")]
 	public int sprint = 4;
 	[Tooltip("# of tiles unit can jump")]
@@ -49,15 +58,14 @@ public class Agent : MonoBehaviour {
 	bool movingToEdge = false;
 	Vector3 jumpTarget;
 
-	[Space]
-	[Space]
-	[Tooltip("Do Not Assign")]
-	public Tile actualTargetTile;
+	protected int unitActions;
 
 	//Initialise agents
 	protected void Init() {
+		unitActions = numberOfActions;
 		halfHeight = GetComponent<Collider>().bounds.extents.y; 
 		TurnManager.AddUnit(this);
+		moveAmount = move;
 	}
 
 	public void GetCurrentTile() {
@@ -84,6 +92,11 @@ public class Agent : MonoBehaviour {
 
 	//process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
 	public void FindSelectableTiles() {
+		if (unitActions < numberOfActions)
+			moveAmount = sprint - move;
+		else
+			moveAmount = move;
+		
 		ComputeAdjacentcyLists(jumpHeight, null);
 		GetCurrentTile();
 
@@ -98,7 +111,7 @@ public class Agent : MonoBehaviour {
 			selectableTiles.Add(t);
 			t.selectable = true;
 
-			if(t.distance < move) {
+			if(t.distance < moveAmount) {
 				foreach (Tile tile in t.adjacencyList) {
 					if (!tile.visited) {
 						tile.parent = t;
@@ -157,8 +170,8 @@ public class Agent : MonoBehaviour {
 			RemoveSelectableTiles();
 			moving = false;
 
-			//move EndTurn() to after action is complete instead of end of move
-			TurnManager.EndTurn();
+			//end of move action
+			EndAction();
 		}
 	}
 
@@ -265,7 +278,7 @@ public class Agent : MonoBehaviour {
 	}
 
 	//A* pathfinding
-	protected void FindPath(Tile p_target) {
+	protected void FindPath(Tile p_target, bool p_isWaypoint) {
 		ComputeAdjacentcyLists(jumpHeight, p_target);
 		GetCurrentTile();
 
@@ -283,7 +296,7 @@ public class Agent : MonoBehaviour {
 
 			if (t == p_target) {
 				//found path
-				actualTargetTile = FindEndTile(t);
+				actualTargetTile = FindEndTile(t, p_isWaypoint);
 				MoveToTile(actualTargetTile);
 				return;
 			}
@@ -320,7 +333,7 @@ public class Agent : MonoBehaviour {
 		Debug.Log("Path not found");
 	}
 
-	protected Tile FindEndTile(Tile p_t) {
+	protected Tile FindEndTile(Tile p_t, bool p_isWaypoint) {
 		Stack<Tile> tempPath = new Stack<Tile>();
 
 		Tile next = p_t.parent;
@@ -331,13 +344,16 @@ public class Agent : MonoBehaviour {
 		}
 
 		//if in move range return target tile
-		if (tempPath.Count <= move) {
-			return p_t.parent;
+		if (tempPath.Count <= moveAmount) {
+			if (p_isWaypoint)
+				return p_t;
+			else
+				return p_t.parent;
 		}
 
 		//if not in range return last tile in range
 		Tile endTile = null;
-		for (int i = 0; i <= move; i++) {
+		for (int i = 0; i <= moveAmount; i++) {
 			endTile = tempPath.Pop();
 		}
 
@@ -358,12 +374,28 @@ public class Agent : MonoBehaviour {
 		return lowest;
 	}
 
+	public void DoAction(Actions p_action) {
+		if (!moving && unitActions > 0) {
+			p_action.Action();
+			EndAction();
+		}
+	}
+
+	void EndAction() {
+		unitActions--;
+		if (unitActions <= 0) {
+			TurnManager.EndTurn();
+		}
+	}
+
 	public void BeginTurn() {
 		turn = true;
+		unitActions = numberOfActions;
+		moveAmount = move;
 	}
 
 	public void EndTurn() {
-		turn = false;
+		turn = false;			
 	}
 
 	public void Died() {

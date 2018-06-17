@@ -36,7 +36,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1177980653304478}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 9, y: 1, z: 9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -95,9 +95,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c67438cd41b6b9149a339253bbc8b92e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actionList: []
   turn: 0
+  dead: 0
   currentTile: {fileID: 0}
   moving: 0
+  actualTargetTile: {fileID: 0}
+  numberOfActions: 2
   move: 2
   sprint: 4
   jumpHeight: 1
@@ -107,7 +111,12 @@ MonoBehaviour:
   jumpUpVelSlow: 1.2
   jumpDownPop: 2.7
   jumpDownVelSlow: 2.5
-  actualTargetTile: {fileID: 0}
+  waypoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  currentWaypoint: 0
 --- !u!136 &136808541047849560
 CapsuleCollider:
   m_ObjectHideFlags: 1

@@ -6,6 +6,12 @@ public class NPC : Agent {
 
 	GameObject target;
 
+	[Space]
+	[Space]
+	[Header("Waypoints")]
+	public List<GameObject> waypoints = new List<GameObject>();
+	public int currentWaypoint = 0;
+
 	void Start() {
 		Init();
 	}
@@ -17,8 +23,9 @@ public class NPC : Agent {
         if (!turn)
             return;
 
-        if (!moving) {
-			FindNearestTarget();
+        if (!moving && unitActions > 0) {
+			//FindNearestTarget();
+			NextWaypoint();
 			CalculatePath();
             FindSelectableTiles();
 			actualTargetTile.target = true;
@@ -30,7 +37,24 @@ public class NPC : Agent {
 
 	void CalculatePath() {
 		Tile targetTile = GetTargetTile(target);
-		FindPath(targetTile);
+		if (waypoints.Count > 0)
+			FindPath(targetTile, true);
+		else
+			FindPath(targetTile, false);
+	}
+
+	void NextWaypoint() {
+		if (waypoints.Count == 0) {
+			FindNearestTarget();
+			return;
+		}
+		if (Vector3.Distance(transform.position, waypoints[currentWaypoint].transform.position) < 0.15f) {
+			currentWaypoint++;
+			if (currentWaypoint >= waypoints.Count) {
+				currentWaypoint = 0;
+			}
+		}
+		target = waypoints[currentWaypoint];
 	}
 
 	void FindNearestTarget() {

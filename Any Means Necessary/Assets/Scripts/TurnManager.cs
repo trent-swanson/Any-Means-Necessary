@@ -8,6 +8,12 @@ public class TurnManager : MonoBehaviour {
 	static Queue<string> turnKey = new Queue<string>();
 	static Queue<Agent> turnTeam = new Queue<Agent>();
 
+	public delegate void UnitSelect(PlayerController p_unit);
+	public static event UnitSelect OnUnitSelect;
+	
+	public delegate void UnitDeselect();
+	public static event UnitDeselect OnUnitDeselect;
+
 	void Start() {
 		//Find all tiles in level and add them to GameManager tile list
 		GameManager.tiles = GameObject.FindGameObjectsWithTag("Tile");
@@ -31,8 +37,12 @@ public class TurnManager : MonoBehaviour {
 
 	public static void StartTurn() {
 		if (turnTeam.Count > 0) {
-			if (!turnTeam.Peek().dead)
+			if (!turnTeam.Peek().dead) {
+				if(OnUnitSelect != null && turnKey.Peek() == "Player") {
+					OnUnitSelect(turnTeam.Peek().GetComponent<PlayerController>());
+				}
 				turnTeam.Peek().BeginTurn();
+			}
 			else
 				RemoveUnit();
 		}
@@ -46,6 +56,9 @@ public class TurnManager : MonoBehaviour {
 			StartTurn();
 		}
 		else {
+			if(OnUnitDeselect != null && turnKey.Peek() == "Player") {
+				OnUnitDeselect();
+			}
 			string team = turnKey.Dequeue();
 			turnKey.Enqueue(team);
 			InitTeamTurnMove();
@@ -97,7 +110,6 @@ public class TurnManager : MonoBehaviour {
 
 			//if no unit type in dictionary, remove unit turnKey
 			if (units.ContainsKey(tempUnit.tag)) {
-				Debug.Log("Still has npcs in dictionary");
 				turnKey.Enqueue(team);
 			}
 
