@@ -16,6 +16,11 @@ public class Tile : MonoBehaviour {
     public Tile parent = null;
     public int distance = 0;
 
+    //A* vars
+    public float fCost = 0;
+    public float gCost = 0;
+    public float hCost = 0;
+
     //0 defualt, 1 active, 2 sprint, 3 blocked, 4 target, 5 current
     public List<Material> matList = new List<Material>();
     public enum matEnum {defualt, active, sprint, blocked, target, current};
@@ -44,17 +49,17 @@ public class Tile : MonoBehaviour {
     }
 
     //find all adjacent tiles
-    public void FindNeighbors(float p_jumpHeight) {
+    public void FindNeighbors(float p_jumpHeight, Tile p_target) {
         Reset();
 
-        CheckTile(Vector3.forward, p_jumpHeight);
-        CheckTile(-Vector3.forward, p_jumpHeight);
-        CheckTile(Vector3.right, p_jumpHeight);
-        CheckTile(Vector3.left, p_jumpHeight);
+        CheckTile(Vector3.forward, p_jumpHeight, p_target);
+        CheckTile(-Vector3.forward, p_jumpHeight, p_target);
+        CheckTile(Vector3.right, p_jumpHeight, p_target);
+        CheckTile(Vector3.left, p_jumpHeight, p_target);
     }
 
     //check if a adjacent tile is walkable and not occupied and add it to adjacentcy list
-    public void CheckTile(Vector3 p_direction, float p_jumpHeight) {
+    public void CheckTile(Vector3 p_direction, float p_jumpHeight, Tile p_target) {
         Vector3 halfExtents = new Vector3(0.5f, (1 + p_jumpHeight) / 2.0f, 0.5f);
         Collider[] colliders = Physics.OverlapBox(transform.position + p_direction, halfExtents);
 
@@ -62,7 +67,7 @@ public class Tile : MonoBehaviour {
             Tile tile = item.GetComponent<Tile>();
             if (tile != null && tile.walkable) {
                 RaycastHit hit;
-                if (!Physics.Raycast(tile.transform.position, Vector3.up, out hit, 1.0f)) {
+                if (!Physics.Raycast(tile.transform.position, Vector3.up, out hit, 1.0f) || (tile == p_target)) {
                     adjacencyList.Add(tile);
                 }
             }
@@ -93,5 +98,7 @@ public class Tile : MonoBehaviour {
         visited = false;
         parent = null;
         distance = 0;
+
+        fCost = gCost = hCost = 0;
     }
 }

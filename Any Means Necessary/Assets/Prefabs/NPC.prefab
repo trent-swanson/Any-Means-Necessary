@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33846404017553756}
   - component: {fileID: 136808541047849560}
   - component: {fileID: 23593153801796814}
-  - component: {fileID: 114003846010574290}
+  - component: {fileID: 114826910992417790}
   m_Layer: 0
   m_Name: NPC
   m_TagString: NPC
@@ -84,7 +84,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1177980653304478}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114003846010574290
+--- !u!114 &114826910992417790
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -92,9 +92,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1177980653304478}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7433ad7ed7cf124ab07bcbaad4a8529, type: 3}
+  m_Script: {fileID: 11500000, guid: c67438cd41b6b9149a339253bbc8b92e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  turn: 0
   currentTile: {fileID: 0}
   moving: 0
   move: 2
@@ -106,6 +107,7 @@ MonoBehaviour:
   jumpUpVelSlow: 1.2
   jumpDownPop: 2.7
   jumpDownVelSlow: 2.5
+  actualTargetTile: {fileID: 0}
 --- !u!136 &136808541047849560
 CapsuleCollider:
   m_ObjectHideFlags: 1

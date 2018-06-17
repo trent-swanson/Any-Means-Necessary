@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerController : Agent {
 
-    void Start() {
+    void Awake() {
         Init();
     }
 

@@ -4,23 +4,39 @@ using UnityEngine;
 
 public class Agent : MonoBehaviour {
 
+	[Tooltip("Do Not Assign")]
 	public bool turn = false;
+	[Tooltip("Do Not Assign")]
+	public bool dead = false;
 
 	List<Tile> selectableTiles = new List<Tile>();
-	GameObject[] tiles;
 
 	Stack<Tile> path = new Stack<Tile>();
+	[Tooltip("Do Not Assign")]
 	public Tile currentTile;
 
+	[Tooltip("Do Not Assign")]
 	public bool moving = false;
+	[Space]
+	[Space]
+	[Header("Unit Editable Variables")]
+	[Tooltip("# of tiles unit can move")]
 	public int move = 2;
+	[Tooltip("# of tiles unit can sprint to")]
 	public int sprint = 4;
+	[Tooltip("# of tiles unit can jump")]
 	public float jumpHeight = 1;
+	[Tooltip("Move speed between tiles")]
 	public float moveSpeed = 2;
+	[Tooltip("How quickly unit jumps")]
 	public float jumpVelocity = 4.5f;
+	[Tooltip("Aditional height when jumping up")]
 	public float jumpUpPop = 0.7f;
+	[Tooltip("Amount forward movement is / when jumping")]
 	public float jumpUpVelSlow = 1.2f;
+	[Tooltip("Aditional hope when jumping down")]
 	public float jumpDownPop = 2.7f;
+	[Tooltip("Amount forward movement is / when falling")]
 	public float jumpDownVelSlow = 2.5f;
 
 	Vector3 velocity = new Vector3();
@@ -33,10 +49,14 @@ public class Agent : MonoBehaviour {
 	bool movingToEdge = false;
 	Vector3 jumpTarget;
 
+	[Space]
+	[Space]
+	[Tooltip("Do Not Assign")]
+	public Tile actualTargetTile;
+
 	//Initialise agents
 	protected void Init() {
 		halfHeight = GetComponent<Collider>().bounds.extents.y; 
-		tiles = GameObject.FindGameObjectsWithTag("Tile");
 		TurnManager.AddUnit(this);
 	}
 
@@ -55,16 +75,16 @@ public class Agent : MonoBehaviour {
 	}
 
 	//get all adjacent tiles for each tile in grid and assign them to that tiles adjacentcy list
-	public void ComputeAdjacentcyLists() {
-		foreach (GameObject tile in tiles) {
+	public void ComputeAdjacentcyLists(float p_jumpHeight, Tile p_target) {
+		foreach (GameObject tile in GameManager.tiles) {
 			Tile t = tile.GetComponent<Tile>();
-			t.FindNeighbors(jumpHeight);
+			t.FindNeighbors(p_jumpHeight, p_target);
 		}
 	}
 
 	//process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
 	public void FindSelectableTiles() {
-		ComputeAdjacentcyLists();
+		ComputeAdjacentcyLists(jumpHeight, null);
 		GetCurrentTile();
 
 		Queue<Tile> process = new Queue<Tile>();
@@ -244,11 +264,111 @@ public class Agent : MonoBehaviour {
 		}
 	}
 
+	//A* pathfinding
+	protected void FindPath(Tile p_target) {
+		ComputeAdjacentcyLists(jumpHeight, p_target);
+		GetCurrentTile();
+
+		List<Tile> openList = new List<Tile>();
+		List<Tile> closeList = new List<Tile>();
+
+		openList.Add(currentTile);
+
+		currentTile.hCost = Vector3.SqrMagnitude(currentTile.transform.position - p_target.transform.position);
+		currentTile.fCost = currentTile.hCost;
+
+		while (openList.Count > 0) {
+			Tile t = FindLowestFCost(openList);
+			closeList.Add(t);
+
+			if (t == p_target) {
+				//found path
+				actualTargetTile = FindEndTile(t);
+				MoveToTile(actualTargetTile);
+				return;
+			}
+
+			foreach (Tile tile in t.adjacencyList) {
+				if (closeList.Contains(tile)) {
+					//Do nothing, already processed
+				}
+				else if (openList.Contains(tile)) {
+					//check if path is faster
+					float tempG = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
+
+					if (tempG < tile.gCost) {
+						tile.parent = t;
+						tile.gCost = tempG;
+						tile.fCost = tile.gCost + tile.hCost;
+					}
+					//else is path not fast, do nothing
+				}
+				else {
+					//new tile, calculate fCost and add to openList
+					tile.parent = t;
+
+					tile.gCost = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
+					tile.hCost = Vector3.Distance(tile.transform.position, p_target.transform.position);
+					tile.fCost = tile.gCost + tile.hCost;
+
+					openList.Add(tile);
+				}
+			}
+		}
+
+		//todo - what to do if no path to target tile
+		Debug.Log("Path not found");
+	}
+
+	protected Tile FindEndTile(Tile p_t) {
+		Stack<Tile> tempPath = new Stack<Tile>();
+
+		Tile next = p_t.parent;
+		//count back from target tile to current tile to get tempPath
+		while (next != null) {
+			tempPath.Push(next);
+			next = next.parent;
+		}
+
+		//if in move range return target tile
+		if (tempPath.Count <= move) {
+			return p_t.parent;
+		}
+
+		//if not in range return last tile in range
+		Tile endTile = null;
+		for (int i = 0; i <= move; i++) {
+			endTile = tempPath.Pop();
+		}
+
+		return endTile; 
+	}
+
+	protected Tile FindLowestFCost(List<Tile> p_list) {
+		Tile lowest = p_list[0];
+
+		foreach (Tile t in p_list) {
+			if (t.fCost < lowest.fCost) {
+				lowest = t;
+			}
+		}
+
+		p_list.Remove(lowest);
+
+		return lowest;
+	}
+
 	public void BeginTurn() {
 		turn = true;
 	}
 
 	public void EndTurn() {
 		turn = false;
+	}
+
+	public void Died() {
+		dead = true;
+		transform.position = new Vector3(0, 100, 0);
+		TurnManager.EndTurn();
 	}
 }
