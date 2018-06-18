@@ -9,7 +9,6 @@ public class GenerateGrid : MonoBehaviour {
 
     public Vector2 gridSize;
     public float tileSize;
-
     [Range(0,1)]
     public float tilePadding;
 

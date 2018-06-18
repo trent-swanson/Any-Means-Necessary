@@ -7,9 +7,17 @@ using UnityEditor;
 public class GridBuilderEditor : Editor {
 
     public override void OnInspectorGUI() {
-        base.OnInspectorGUI();
+        DrawDefaultInspector();
 
-        GenerateGrid map = target as GenerateGrid;
-        map.Generate();
+        GUIStyle customButton = new GUIStyle("button");
+        customButton.fontSize = 17;
+        customButton.fontStyle = FontStyle.Bold;
+
+        GenerateGrid myScript = (GenerateGrid)target;
+        GUILayout.Space(40);
+        if (GUILayout.Button("Generate Grid", customButton, GUILayout.Height(45))) {
+            myScript.Generate();
+        }
+        GUILayout.Space(15);
     }
 }

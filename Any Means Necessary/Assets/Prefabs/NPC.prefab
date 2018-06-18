@@ -37,7 +37,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1177980653304478}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9, y: 1, z: 9}
+  m_LocalPosition: {x: 11, y: 1, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -95,14 +95,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c67438cd41b6b9149a339253bbc8b92e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actionList: []
   turn: 0
   dead: 0
   currentTile: {fileID: 0}
   moving: 0
   actualTargetTile: {fileID: 0}
-  numberOfActions: 2
-  move: 2
+  numberOfActions: 1
+  move: 3
   sprint: 4
   jumpHeight: 1
   moveSpeed: 2
