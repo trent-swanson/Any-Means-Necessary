@@ -20,7 +20,6 @@ public class ActionButton : MonoBehaviour {
 	}
 
 	void ButtonPress() {
-		Debug.Log("yea");
-		player.DoAction(action);
+		action.SetAction(player);
 	}
 }

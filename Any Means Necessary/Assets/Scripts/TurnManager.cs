@@ -5,10 +5,8 @@ using UnityEngine;
 public class TurnManager : MonoBehaviour {
 
 	static Dictionary<string, List<Agent>> units = new Dictionary<string, List<Agent>>();
-    static Dictionary<string, List<EnvironmentObject>> environmentDictionary = new Dictionary<string, List<EnvironmentObject>>();
-    static Queue<string> turnKey = new Queue<string>();
-	static Queue<Agent> turnTeam = new Queue<Agent>();
-    static Queue<EnvironmentObject> environmentTurn = new Queue<EnvironmentObject>();
+    static Queue<string> turnKey = new Queue<string>(); //what round is it (player, NPC, Live)
+	static Queue<Agent> turnTeam = new Queue<Agent>();  //which units turn in the current teams turn
 
     public delegate void UnitSelect(PlayerController p_unit);
 	public static event UnitSelect OnUnitSelect;
@@ -37,17 +35,6 @@ public class TurnManager : MonoBehaviour {
 
 		StartTurn();
 	}
-
-    //initilise environment team
-    static void InitEnvironmentTurnMove() {
-        List<EnvironmentObject> teamList = environmentDictionary[turnKey.Peek()];
-
-        foreach (EnvironmentObject unit in teamList) {
-            environmentTurn.Enqueue(unit);
-        }
-
-        StartTurn();
-    }
 
     //start of unit turn
     public static void StartTurn() {
@@ -100,25 +87,6 @@ public class TurnManager : MonoBehaviour {
 		list.Add(p_unit);
 	}
 
-    //add environment objs
-    public static void AddUnit(EnvironmentObject p_unit) {
-        List<EnvironmentObject> list;
-
-        if (!environmentDictionary.ContainsKey(p_unit.tag)) {
-            list = new List<EnvironmentObject>();
-            environmentDictionary[p_unit.tag] = list;
-
-            if (!turnKey.Contains(p_unit.tag)) {
-                turnKey.Enqueue(p_unit.tag);
-            }
-        }
-        else {
-            list = environmentDictionary[p_unit.tag];
-        }
-
-        list.Add(p_unit);
-    }
-
     //remove agents
     public static void RemoveUnit() {
         //remove unit from turnTeam
@@ -151,41 +119,6 @@ public class TurnManager : MonoBehaviour {
             }
 
             InitTeamTurnMove();
-        }
-    }
-
-    //remove environment objects
-    void RemoveEnvironment() {
-        //remove unit from turnTeam
-        EnvironmentObject tempUnit = environmentTurn.Dequeue();
-
-        //remove unity from dictionary
-        List<EnvironmentObject> list;
-        list = environmentDictionary[tempUnit.tag];
-        list.Remove(tempUnit);
-        if (list.Count > 0) {
-            environmentDictionary[tempUnit.tag] = list;
-        }
-        else {
-            environmentDictionary.Remove(tempUnit.tag);
-        }
-
-        //remove gameobject
-        Destroy(tempUnit.gameObject);
-
-        //if still units in team start next turn, else initialise next team
-        if (environmentTurn.Count > 0) {
-            StartTurn();
-        }
-        else {
-            string team = turnKey.Dequeue();
-
-            //if no unit type in dictionary, remove unit turnKey
-            if (environmentDictionary.ContainsKey(tempUnit.tag)) {
-                turnKey.Enqueue(team);
-            }
-
-            InitEnvironmentTurnMove();
         }
     }
 }

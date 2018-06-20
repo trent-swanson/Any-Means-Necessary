@@ -5,6 +5,7 @@ using UnityEngine;
 public class Agent : MonoBehaviour {
 
 	public List<Actions> actionList = new List<Actions>();
+    public Queue<Actions> actionQueue = new Queue<Actions>();
 
 	[Header("Debugging Only")]
 	[Tooltip("Do Not Assign")]
@@ -27,7 +28,7 @@ public class Agent : MonoBehaviour {
 	[Space]
 	[Header("Unit Editable Variables")]
 	[Tooltip("# of actions unit can perform")]
-	public int numberOfActions = 2;
+	public int actionPoints = 5;
 	[Tooltip("# of tiles unit can move")]
 	public int move = 2;
 	int moveAmount;
@@ -58,11 +59,11 @@ public class Agent : MonoBehaviour {
 	bool movingToEdge = false;
 	Vector3 jumpTarget;
 
-	protected int unitActions;
+	protected int unitActionPoints;
 
 	//Initialise agents
 	protected void Init() {
-		unitActions = numberOfActions;
+        unitActionPoints = actionPoints;
 		halfHeight = GetComponent<Collider>().bounds.extents.y; 
 		TurnManager.AddUnit(this);
 		moveAmount = move;
@@ -92,7 +93,7 @@ public class Agent : MonoBehaviour {
 
 	//process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
 	public void FindSelectableTiles() {
-		if (unitActions < numberOfActions)
+		if (unitActionPoints < actionPoints)
 			moveAmount = sprint - move;
 		else
 			moveAmount = move;
@@ -171,7 +172,7 @@ public class Agent : MonoBehaviour {
 			moving = false;
 
 			//end of move action
-			EndAction();
+			//EndAction();
 		}
 	}
 
@@ -374,23 +375,25 @@ public class Agent : MonoBehaviour {
 		return lowest;
 	}
 
-	public void DoAction(Actions p_action) {
-		if (!moving && unitActions > 0) {
-			p_action.Action();
-			EndAction();
+
+    //Action Stuff
+	public void DoAction(Actions p_action, int p_actionCost) {
+		if (!moving && unitActionPoints > 0) {
+			p_action.DoAction(this);
+			EndAction(p_actionCost);
 		}
 	}
 
-	void EndAction() {
-		unitActions--;
-		if (unitActions <= 0) {
+	void EndAction(int p_actionCost) {
+		unitActionPoints -= p_actionCost;
+		if (unitActionPoints <= 0) {
 			TurnManager.EndTurn();
 		}
 	}
 
 	public void BeginTurn() {
 		turn = true;
-		unitActions = numberOfActions;
+		unitActionPoints = actionPoints;
 		moveAmount = move;
 	}
 
