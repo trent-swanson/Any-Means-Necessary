@@ -23,7 +23,7 @@ public class NPC : Agent {
         if (!turn)
             return;
 
-        if (!moving && unitActions > 0) {
+        if (!moving && currentActionPoints > 0) {
 			//FindNearestTarget();
 			NextWaypoint();
 			CalculatePath();

@@ -7,6 +7,7 @@ public class Tile : MonoBehaviour {
     public bool walkable = true;
     public bool current = false;
     public bool target = false;
+    public bool unreachable = false;
     public bool selectable = false;
     public GameObject occupingObject;
 
@@ -24,7 +25,7 @@ public class Tile : MonoBehaviour {
 
     //0 defualt, 1 active, 2 sprint, 3 blocked, 4 target, 5 current
     public List<Material> matList = new List<Material>();
-    public enum matEnum {defualt, active, sprint, blocked, target, current};
+    public enum matEnum {defualt, active, sprint, blocked, target, current, unreachable};
 
     Renderer myRenderer;
 
@@ -37,6 +38,9 @@ public class Tile : MonoBehaviour {
         //Updates tile material to display its state
         if (current) {
             myRenderer.material = matList[(int)matEnum.current];
+        }
+        else if (unreachable) {
+            myRenderer.material = matList[(int)matEnum.unreachable];
         }
         else if (target) {
             myRenderer.material = matList[(int)matEnum.target];
@@ -94,6 +98,7 @@ public class Tile : MonoBehaviour {
 
         current = false;
         target = false;
+        unreachable = false;
         selectable = false;
 
         visited = false;

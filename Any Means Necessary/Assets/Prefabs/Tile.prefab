@@ -110,11 +110,16 @@ MonoBehaviour:
   walkable: 1
   current: 0
   target: 0
+  unreachable: 0
   selectable: 0
+  occupingObject: {fileID: 0}
   adjacencyList: []
   visited: 0
   parent: {fileID: 0}
   distance: 0
+  fCost: 0
+  gCost: 0
+  hCost: 0
   matList:
   - {fileID: 2100000, guid: 8ce4dabd87410bf45b3dc857408a7231, type: 2}
   - {fileID: 2100000, guid: 7f2f020e0bdb0204b9fae5f587032b37, type: 2}
@@ -122,3 +127,4 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 3b30f80565d7f104ba436f20d70f6ddf, type: 2}
   - {fileID: 2100000, guid: 1d06eff91de7445478fe9e20708868f5, type: 2}
   - {fileID: 2100000, guid: bb3c9f97f4673b74080a38d9ca368058, type: 2}
+  - {fileID: 2100000, guid: 40269a3a164b7a9459b7b9ae2d2d11ee, type: 2}

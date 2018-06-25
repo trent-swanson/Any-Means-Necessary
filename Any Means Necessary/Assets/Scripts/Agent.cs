@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Agent : MonoBehaviour {
 
@@ -13,6 +14,7 @@ public class Agent : MonoBehaviour {
 	public bool dead = false;
 
 	List<Tile> selectableTiles = new List<Tile>();
+    Tile unreachableTile;
 
 	Stack<Tile> path = new Stack<Tile>();
 	[Tooltip("Do Not Assign")]
@@ -23,13 +25,15 @@ public class Agent : MonoBehaviour {
 	[Tooltip("Do Not Assign")]
 	public Tile actualTargetTile;
 
-	[Space]
-	[Space]
-	[Header("Unit Editable Variables")]
-	[Tooltip("# of actions unit can perform")]
-	public int numberOfActions = 2;
+    [Space]
+    [Space]
+    [Header("Unit Editable Variables")]
+    public GameObject unitCanvas;
+    public Text APNumber;
+    [Tooltip("# of actions unit can perform")]
+	public int actionPoints = 2;
 	[Tooltip("# of tiles unit can move")]
-	public int move = 2;
+	public int maxMove = 2;
 	int moveAmount;
 	[Tooltip("# of tiles unit can sprint to")]
 	public int sprint = 4;
@@ -58,14 +62,15 @@ public class Agent : MonoBehaviour {
 	bool movingToEdge = false;
 	Vector3 jumpTarget;
 
-	protected int unitActions;
+	protected int currentActionPoints;
 
 	//Initialise agents
 	protected void Init() {
-		unitActions = numberOfActions;
-		halfHeight = GetComponent<Collider>().bounds.extents.y; 
+        currentActionPoints = actionPoints;
+		halfHeight = GetComponent<Collider>().bounds.extents.y;
+        unitCanvas.SetActive(false);
 		TurnManager.AddUnit(this);
-		moveAmount = move;
+		moveAmount = maxMove;
 	}
 
 	public void GetCurrentTile() {
@@ -92,12 +97,12 @@ public class Agent : MonoBehaviour {
 
 	//process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
 	public void FindSelectableTiles() {
-		if (unitActions < numberOfActions)
-			moveAmount = sprint - move;
-		else
-			moveAmount = move;
-		
-		ComputeAdjacentcyLists(jumpHeight, null);
+        moveAmount = currentActionPoints;
+        if (moveAmount > maxMove) {
+            moveAmount = maxMove;
+        }
+
+        ComputeAdjacentcyLists(jumpHeight, null);
 		GetCurrentTile();
 
 		Queue<Tile> process = new Queue<Tile>();
@@ -127,14 +132,20 @@ public class Agent : MonoBehaviour {
 	//Get Path in reverse order
 	public void MoveToTile(Tile p_tile) {
         path.Clear();
-		p_tile.target = true;
-        moving = true;
+        int pathCost = 0;
 
 		Tile next = p_tile;
 		while (next != null) {
+            pathCost++;
 			path.Push(next);
 			next = next.parent;
 		}
+        //-1 from pathcost because while loop counts current Tile
+        pathCost -= 1;
+
+        p_tile.target = true;
+        moving = true;
+        currentActionPoints -= pathCost;
     }
 
 	public void Move() {
@@ -375,26 +386,29 @@ public class Agent : MonoBehaviour {
 	}
 
 	public void DoAction(Actions p_action) {
-		if (!moving && unitActions > 0) {
-			p_action.Action();
+		if (!moving && currentActionPoints > 0) {
+			p_action.DoAction();
 			EndAction();
 		}
 	}
 
 	void EndAction() {
-		unitActions--;
-		if (unitActions <= 0) {
+        APNumber.text = currentActionPoints.ToString();
+        if (currentActionPoints <= 0) {
 			TurnManager.EndTurn();
 		}
 	}
 
 	public void BeginTurn() {
 		turn = true;
-		unitActions = numberOfActions;
-		moveAmount = move;
+        unitCanvas.SetActive(true);
+        currentActionPoints = actionPoints;
+        APNumber.text = currentActionPoints.ToString();
+		moveAmount = maxMove;
 	}
 
 	public void EndTurn() {
+        unitCanvas.SetActive(false);
 		turn = false;			
 	}
 
