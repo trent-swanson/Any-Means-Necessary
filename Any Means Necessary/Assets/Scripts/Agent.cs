@@ -5,25 +5,25 @@ using UnityEngine.UI;
 
 public class Agent : MonoBehaviour {
 
-	public List<Actions> actionList = new List<Actions>();
+    public List<Actions> actionList = new List<Actions>();
 
-	[Header("Debugging Only")]
-	[Tooltip("Do Not Assign")]
-	public bool turn = false;
-	[Tooltip("Do Not Assign")]
-	public bool dead = false;
+    [Header("Debugging Only")]
+    [Tooltip("Do Not Assign")]
+    public bool turn = false;
+    [Tooltip("Do Not Assign")]
+    public bool dead = false;
 
-	List<Tile> selectableTiles = new List<Tile>();
+    List<Tile> selectableTiles = new List<Tile>();
     Tile unreachableTile;
 
-	Stack<Tile> path = new Stack<Tile>();
-	[Tooltip("Do Not Assign")]
-	public Tile currentTile;
+    Stack<Tile> path = new Stack<Tile>();
+    [Tooltip("Do Not Assign")]
+    public Tile currentTile;
 
-	[Tooltip("Do Not Assign")]
-	public bool moving = false;
-	[Tooltip("Do Not Assign")]
-	public Tile actualTargetTile;
+    [Tooltip("Do Not Assign")]
+    public bool moving = false;
+    [Tooltip("Do Not Assign")]
+    public Tile actualTargetTile;
 
     [Space]
     [Space]
@@ -31,375 +31,379 @@ public class Agent : MonoBehaviour {
     public GameObject unitCanvas;
     public Text APNumber;
     [Tooltip("# of actions unit can perform")]
-	public int actionPoints = 2;
-	[Tooltip("# of tiles unit can move")]
-	public int maxMove = 2;
-	int moveAmount;
-	[Tooltip("# of tiles unit can sprint to")]
-	public int sprint = 4;
-	[Tooltip("# of tiles unit can jump")]
-	public float jumpHeight = 1;
-	[Tooltip("Move speed between tiles")]
-	public float moveSpeed = 2;
-	[Tooltip("How quickly unit jumps")]
-	public float jumpVelocity = 4.5f;
-	[Tooltip("Aditional height when jumping up")]
-	public float jumpUpPop = 0.7f;
-	[Tooltip("Amount forward movement is / when jumping")]
-	public float jumpUpVelSlow = 1.2f;
-	[Tooltip("Aditional hope when jumping down")]
-	public float jumpDownPop = 2.7f;
-	[Tooltip("Amount forward movement is / when falling")]
-	public float jumpDownVelSlow = 2.5f;
+    public int actionPoints = 2;
+    [Tooltip("# of tiles unit can move")]
+    public int maxMove = 2;
+    int moveAmount;
+    [Tooltip("# of tiles unit can jump")]
+    public float jumpHeight = 1;
+    [Tooltip("Move speed between tiles")]
+    public float moveSpeed = 2;
+    [Tooltip("How quickly unit jumps")]
+    public float jumpVelocity = 4.5f;
+    [Tooltip("Aditional height when jumping up")]
+    public float jumpUpPop = 0.7f;
+    [Tooltip("Amount forward movement is / when jumping")]
+    public float jumpUpVelSlow = 1.2f;
+    [Tooltip("Aditional hope when jumping down")]
+    public float jumpDownPop = 2.7f;
+    [Tooltip("Amount forward movement is / when falling")]
+    public float jumpDownVelSlow = 2.5f;
 
-	Vector3 velocity = new Vector3();
-	Vector3 heading = new Vector3();
+    Vector3 velocity = new Vector3();
+    Vector3 heading = new Vector3();
 
-	float halfHeight;
+    float halfHeight;
 
-	bool fallingDown = false;
-	bool jumpingUp = false;
-	bool movingToEdge = false;
-	Vector3 jumpTarget;
+    bool fallingDown = false;
+    bool jumpingUp = false;
+    bool movingToEdge = false;
+    Vector3 jumpTarget;
 
-	protected int currentActionPoints;
+    protected int currentActionPoints;
 
-	//Initialise agents
-	protected void Init() {
+    //Initialise agents
+    protected void Init() {
         currentActionPoints = actionPoints;
-		halfHeight = GetComponent<Collider>().bounds.extents.y;
+        halfHeight = GetComponent<Collider>().bounds.extents.y;
         unitCanvas.SetActive(false);
-		TurnManager.AddUnit(this);
-		moveAmount = maxMove;
-	}
+        TurnManager.AddUnit(this);
+    }
 
-	public void GetCurrentTile() {
-		currentTile = GetTargetTile(gameObject);
-		currentTile.current = true;
-	}
+    public void GetCurrentTile() {
+        currentTile = GetTargetTile(gameObject);
+        currentTile.current = true;
+    }
 
-	public Tile GetTargetTile(GameObject p_target) {
-		RaycastHit hit;
-		Tile tile = null;
-		if (Physics.Raycast(p_target.transform.position, Vector3.down, out hit, 2.0f)) {
-			tile = hit.collider.GetComponent<Tile>();
-		}
-		return tile;
-	}
+    public Tile GetTargetTile(GameObject p_target) {
+        RaycastHit hit;
+        Tile tile = null;
+        if (Physics.Raycast(p_target.transform.position, Vector3.down, out hit, 2.0f)) {
+            tile = hit.collider.GetComponent<Tile>();
+        }
+        return tile;
+    }
 
-	//get all adjacent tiles for each tile in grid and assign them to that tiles adjacentcy list
-	public void ComputeAdjacentcyLists(float p_jumpHeight, Tile p_target) {
-		foreach (GameObject tile in GameManager.tiles) {
-			Tile t = tile.GetComponent<Tile>();
-			t.FindNeighbors(p_jumpHeight, p_target);
-		}
-	}
+    //get all adjacent tiles for each tile in grid and assign them to that tiles adjacentcy list
+    public void ComputeAdjacentcyLists(float p_jumpHeight, Tile p_target) {
+        foreach (GameObject tile in GameManager.tiles) {
+            Tile t = tile.GetComponent<Tile>();
+            t.FindNeighbors(p_jumpHeight, p_target);
+        }
+    }
 
-	//process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
-	public void FindSelectableTiles() {
+    //process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
+    public void FindSelectableTiles() {
         moveAmount = currentActionPoints;
         if (moveAmount > maxMove) {
             moveAmount = maxMove;
         }
 
         ComputeAdjacentcyLists(jumpHeight, null);
-		GetCurrentTile();
+        GetCurrentTile();
 
-		Queue<Tile> process = new Queue<Tile>();
+        Queue<Tile> process = new Queue<Tile>();
 
-		process.Enqueue(currentTile);
-		currentTile.visited = true;
+        process.Enqueue(currentTile);
+        currentTile.visited = true;
 
-		while (process.Count > 0) {
-			Tile t = process.Dequeue();
+        while (process.Count > 0) {
+            Tile t = process.Dequeue();
 
-			selectableTiles.Add(t);
-			t.selectable = true;
+            selectableTiles.Add(t);
+            t.selectable = true;
 
-			if(t.distance < moveAmount) {
-				foreach (Tile tile in t.adjacencyList) {
-					if (!tile.visited) {
-						tile.parent = t;
-						tile.visited = true;
-						tile.distance = 1 + t.distance;
-						process.Enqueue(tile);
-					}
-				}
-			}
-		}
-	}
+            if (t.distance < moveAmount) {
+                foreach (Tile tile in t.adjacencyList) {
+                    if (!tile.visited) {
+                        tile.parent = t;
+                        tile.visited = true;
+                        tile.distance = 1 + t.distance;
+                        process.Enqueue(tile);
+                    }
+                }
+            }
+        }
+    }
 
-	//Get Path in reverse order
-	public void MoveToTile(Tile p_tile) {
+    //Get Path in reverse order
+    public void CheckMoveToTile(Tile p_tile, bool hover) {
         path.Clear();
         int pathCost = 0;
 
-		Tile next = p_tile;
-		while (next != null) {
+        Tile next = p_tile;
+        while (next != null) {
             pathCost++;
-			path.Push(next);
-			next = next.parent;
-		}
+            path.Push(next);
+            next = next.parent;
+        }
         //-1 from pathcost because while loop counts current Tile
         pathCost -= 1;
 
-        p_tile.target = true;
-        moving = true;
-        currentActionPoints -= pathCost;
+        if (hover) {
+            p_tile.target = true;
+            int tempAP = currentActionPoints - pathCost;
+            APNumber.text = tempAP.ToString();
+        }
+        else {
+            p_tile.target = true;
+            moving = true;
+            currentActionPoints -= pathCost;
+        }
     }
 
-	public void Move() {
-		if (path.Count > 0) {
-			Tile t = path.Peek();
-			Vector3 targetPos = t.transform.position;
+    public void Move() {
+        if (path.Count > 0) {
+            Tile t = path.Peek();
+            Vector3 targetPos = t.transform.position;
 
-			//calculate the agents position on top of the target tile
-			targetPos.y += halfHeight + t.GetComponent<Collider>().bounds.extents.y;
+            //calculate the agents position on top of the target tile
+            targetPos.y += halfHeight + t.GetComponent<Collider>().bounds.extents.y;
 
-			if (Vector3.Distance(transform.position, targetPos) >= 0.15f) {
-				bool jump = transform.position.y != targetPos.y;
+            if (Vector3.Distance(transform.position, targetPos) >= 0.15f) {
+                bool jump = transform.position.y != targetPos.y;
 
-				if (jump) {
-					Jump(targetPos);
-				} else {
-					//calculate move forward
-					CalculateHeading(targetPos);
-					SetHorizontalVelocity();
-				}
-				
-				//Locomotion (add animations here)
-				transform.forward = heading;
-				transform.position += velocity * Time.deltaTime;
-			}
-			else {
-				//tile center reached
-				transform.position = targetPos;
-				path.Pop();
-			}
-		}
-		else {
-			RemoveSelectableTiles();
-			moving = false;
+                if (jump) {
+                    Jump(targetPos);
+                } else {
+                    //calculate move forward
+                    CalculateHeading(targetPos);
+                    SetHorizontalVelocity();
+                }
 
-			//end of move action
-			EndAction();
-		}
-	}
+                //Locomotion (add animations here)
+                transform.forward = heading;
+                transform.position += velocity * Time.deltaTime;
+            }
+            else {
+                //tile center reached
+                transform.position = targetPos;
+                path.Pop();
+            }
+        }
+        else {
+            RemoveSelectableTiles();
+            moving = false;
 
-	protected void RemoveSelectableTiles() {
-		if (currentTile != null) {
-			currentTile.current = false;
-			currentTile = null;
-		}
-		foreach (Tile tile in selectableTiles) {
-			tile.Reset();
-		}
-		selectableTiles.Clear();
-	}
+            //end of move action
+            EndAction();
+        }
+    }
 
-	//calculate the direction we have to head to reach target
-	void CalculateHeading(Vector3 p_target) {
-		heading = p_target - transform.position;
-		heading.Normalize();
-	}
+    protected void RemoveSelectableTiles() {
+        if (currentTile != null) {
+            currentTile.current = false;
+            currentTile = null;
+        }
+        foreach (Tile tile in selectableTiles) {
+            tile.Reset();
+        }
+        selectableTiles.Clear();
+    }
 
-	//set the velocity of agent to the heading direction
-	void SetHorizontalVelocity() {
-		velocity = heading * moveSpeed;
-	}
+    //calculate the direction we have to head to reach target
+    void CalculateHeading(Vector3 p_target) {
+        heading = p_target - transform.position;
+        heading.Normalize();
+    }
 
-	void Jump(Vector3 p_target) {
-		if (fallingDown)
-			FallDownward(p_target);
-		else if (jumpingUp)
-			JumpUpward(p_target);
-		else if (movingToEdge)
-			MoveToEdge();
-		else
-			PrepareJump(p_target);
-	}
+    //set the velocity of agent to the heading direction
+    void SetHorizontalVelocity() {
+        velocity = heading * moveSpeed;
+    }
 
-	void PrepareJump(Vector3 p_target) {
-		float targetY = p_target.y;
-		p_target.y = transform.position.y;
+    void Jump(Vector3 p_target) {
+        if (fallingDown)
+            FallDownward(p_target);
+        else if (jumpingUp)
+            JumpUpward(p_target);
+        else if (movingToEdge)
+            MoveToEdge();
+        else
+            PrepareJump(p_target);
+    }
 
-		CalculateHeading(p_target);
+    void PrepareJump(Vector3 p_target) {
+        float targetY = p_target.y;
+        p_target.y = transform.position.y;
 
-		//if heigher
-		if (transform.position.y > targetY) {
-			fallingDown = false;
-			jumpingUp = false;
-			movingToEdge = true;
+        CalculateHeading(p_target);
 
-			jumpTarget = transform.position + (p_target - transform.position) / 2.0f;
-		}
-		//if lower
-		else {
-			fallingDown = false;
-			jumpingUp = true;
-			movingToEdge = false;
+        //if heigher
+        if (transform.position.y > targetY) {
+            fallingDown = false;
+            jumpingUp = false;
+            movingToEdge = true;
 
-			//devide velocity to slow down movement while jumping
-			velocity = heading * moveSpeed / jumpUpVelSlow;
+            jumpTarget = transform.position + (p_target - transform.position) / 2.0f;
+        }
+        //if lower
+        else {
+            fallingDown = false;
+            jumpingUp = true;
+            movingToEdge = false;
 
-			float difference = targetY - transform.position.y;
-			//jump velocity
-			velocity.y = jumpVelocity * (jumpUpPop + difference / 2.0f);
-		}
-	}
+            //devide velocity to slow down movement while jumping
+            velocity = heading * moveSpeed / jumpUpVelSlow;
 
-	void FallDownward(Vector3 p_target) {
-		velocity += Physics.gravity * Time.deltaTime;
+            float difference = targetY - transform.position.y;
+            //jump velocity
+            velocity.y = jumpVelocity * (jumpUpPop + difference / 2.0f);
+        }
+    }
 
-		if (transform.position.y <= p_target.y) {
-			fallingDown = false;
-			jumpingUp = false;
-			movingToEdge = false;
+    void FallDownward(Vector3 p_target) {
+        velocity += Physics.gravity * Time.deltaTime;
 
-			Vector3 pos = transform.position;
-			pos.y = p_target.y;
-			transform.position = pos;
+        if (transform.position.y <= p_target.y) {
+            fallingDown = false;
+            jumpingUp = false;
+            movingToEdge = false;
 
-			velocity = new Vector3();
-		}
-	}
+            Vector3 pos = transform.position;
+            pos.y = p_target.y;
+            transform.position = pos;
 
-	void JumpUpward(Vector3 p_target) {
-		velocity += Physics.gravity * Time.deltaTime;
+            velocity = new Vector3();
+        }
+    }
 
-		if (transform.position.y > p_target.y) {
-			jumpingUp = false;
-			fallingDown = true;
-		}
-	}
+    void JumpUpward(Vector3 p_target) {
+        velocity += Physics.gravity * Time.deltaTime;
 
-	void MoveToEdge() {
-		if (Vector3.Distance(transform.position, jumpTarget) >= 0.05f) {
-			SetHorizontalVelocity();
-		}
-		else {
-			movingToEdge = false;
-			fallingDown = true;
+        if (transform.position.y > p_target.y) {
+            jumpingUp = false;
+            fallingDown = true;
+        }
+    }
 
-			//devide velocity to slow down movement while falling
-			velocity /= jumpDownVelSlow;
-			//add small vertical velocity for 'hop' off edge
-			velocity.y = jumpDownPop;
-		}
-	}
+    void MoveToEdge() {
+        if (Vector3.Distance(transform.position, jumpTarget) >= 0.05f) {
+            SetHorizontalVelocity();
+        }
+        else {
+            movingToEdge = false;
+            fallingDown = true;
 
-	//A* pathfinding
-	protected void FindPath(Tile p_target, bool p_isWaypoint) {
-		ComputeAdjacentcyLists(jumpHeight, p_target);
-		GetCurrentTile();
+            //devide velocity to slow down movement while falling
+            velocity /= jumpDownVelSlow;
+            //add small vertical velocity for 'hop' off edge
+            velocity.y = jumpDownPop;
+        }
+    }
 
-		List<Tile> openList = new List<Tile>();
-		List<Tile> closeList = new List<Tile>();
+    //A* pathfinding
+    protected void FindPath(Tile p_target, bool p_isWaypoint) {
+        ComputeAdjacentcyLists(jumpHeight, p_target);
+        GetCurrentTile();
 
-		openList.Add(currentTile);
+        List<Tile> openList = new List<Tile>();
+        List<Tile> closeList = new List<Tile>();
 
-		currentTile.hCost = Vector3.SqrMagnitude(currentTile.transform.position - p_target.transform.position);
-		currentTile.fCost = currentTile.hCost;
+        openList.Add(currentTile);
 
-		while (openList.Count > 0) {
-			Tile t = FindLowestFCost(openList);
-			closeList.Add(t);
+        currentTile.hCost = Vector3.SqrMagnitude(currentTile.transform.position - p_target.transform.position);
+        currentTile.fCost = currentTile.hCost;
 
-			if (t == p_target) {
-				//found path
-				actualTargetTile = FindEndTile(t, p_isWaypoint);
-				MoveToTile(actualTargetTile);
-				return;
-			}
+        while (openList.Count > 0) {
+            Tile t = FindLowestFCost(openList);
+            closeList.Add(t);
 
-			foreach (Tile tile in t.adjacencyList) {
-				if (closeList.Contains(tile)) {
-					//Do nothing, already processed
-				}
-				else if (openList.Contains(tile)) {
-					//check if path is faster
-					float tempG = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
+            if (t == p_target) {
+                //found path
+                actualTargetTile = FindEndTile(t, p_isWaypoint);
+                CheckMoveToTile(actualTargetTile, false);
+                return;
+            }
 
-					if (tempG < tile.gCost) {
-						tile.parent = t;
-						tile.gCost = tempG;
-						tile.fCost = tile.gCost + tile.hCost;
-					}
-					//else is path not fast, do nothing
-				}
-				else {
-					//new tile, calculate fCost and add to openList
-					tile.parent = t;
+            foreach (Tile tile in t.adjacencyList) {
+                if (closeList.Contains(tile)) {
+                    //Do nothing, already processed
+                }
+                else if (openList.Contains(tile)) {
+                    //check if path is faster
+                    float tempG = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
 
-					tile.gCost = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
-					tile.hCost = Vector3.Distance(tile.transform.position, p_target.transform.position);
-					tile.fCost = tile.gCost + tile.hCost;
+                    if (tempG < tile.gCost) {
+                        tile.parent = t;
+                        tile.gCost = tempG;
+                        tile.fCost = tile.gCost + tile.hCost;
+                    }
+                    //else is path not fast, do nothing
+                }
+                else {
+                    //new tile, calculate fCost and add to openList
+                    tile.parent = t;
 
-					openList.Add(tile);
-				}
-			}
-		}
+                    tile.gCost = t.gCost + Vector3.Distance(tile.transform.position, t.transform.position);
+                    tile.hCost = Vector3.Distance(tile.transform.position, p_target.transform.position);
+                    tile.fCost = tile.gCost + tile.hCost;
 
-		//todo - what to do if no path to target tile
-		Debug.Log("Path not found");
-	}
+                    openList.Add(tile);
+                }
+            }
+        }
 
-	protected Tile FindEndTile(Tile p_t, bool p_isWaypoint) {
-		Stack<Tile> tempPath = new Stack<Tile>();
+        //todo - what to do if no path to target tile
+        Debug.Log("Path not found");
+    }
 
-		Tile next = p_t.parent;
-		//count back from target tile to current tile to get tempPath
-		while (next != null) {
-			tempPath.Push(next);
-			next = next.parent;
-		}
+    protected Tile FindEndTile(Tile p_t, bool p_isWaypoint) {
+        Stack<Tile> tempPath = new Stack<Tile>();
 
-		//if in move range return target tile
-		if (tempPath.Count <= moveAmount) {
-			if (p_isWaypoint)
-				return p_t;
-			else
-				return p_t.parent;
-		}
+        Tile next = p_t.parent;
+        //count back from target tile to current tile to get tempPath
+        while (next != null) {
+            tempPath.Push(next);
+            next = next.parent;
+        }
 
-		//if not in range return last tile in range
-		Tile endTile = null;
-		for (int i = 0; i <= moveAmount; i++) {
-			endTile = tempPath.Pop();
-		}
+        //if in move range return target tile
+        if (tempPath.Count <= moveAmount) {
+            if (p_isWaypoint)
+                return p_t;
+            else
+                return p_t.parent;
+        }
 
-		return endTile; 
-	}
+        //if not in range return last tile in range
+        Tile endTile = null;
+        for (int i = 0; i <= moveAmount; i++) {
+            endTile = tempPath.Pop();
+        }
 
-	protected Tile FindLowestFCost(List<Tile> p_list) {
-		Tile lowest = p_list[0];
+        return endTile;
+    }
 
-		foreach (Tile t in p_list) {
-			if (t.fCost < lowest.fCost) {
-				lowest = t;
-			}
-		}
+    protected Tile FindLowestFCost(List<Tile> p_list) {
+        Tile lowest = p_list[0];
 
-		p_list.Remove(lowest);
+        foreach (Tile t in p_list) {
+            if (t.fCost < lowest.fCost) {
+                lowest = t;
+            }
+        }
 
-		return lowest;
-	}
+        p_list.Remove(lowest);
 
-	public void DoAction(Actions p_action) {
-		if (!moving && currentActionPoints > 0) {
-			p_action.DoAction();
-			EndAction();
-		}
-	}
+        return lowest;
+    }
 
-	void EndAction() {
+    public void DoAction(Actions p_action) {
+        if (!moving && currentActionPoints > 0) {
+            p_action.DoAction();
+            EndAction();
+        }
+    }
+
+    void EndAction() {
         APNumber.text = currentActionPoints.ToString();
         if (currentActionPoints <= 0) {
 			TurnManager.EndTurn();
 		}
 	}
 
-	public void BeginTurn() {
+    public void BeginTurn() {
 		turn = true;
         unitCanvas.SetActive(true);
         currentActionPoints = actionPoints;

@@ -27,7 +27,7 @@ public class NPC : Agent {
 			//FindNearestTarget();
 			NextWaypoint();
 			CalculatePath();
-            FindSelectableTiles();
+            //FindSelectableTiles();
 			actualTargetTile.target = true;
         }
         else {

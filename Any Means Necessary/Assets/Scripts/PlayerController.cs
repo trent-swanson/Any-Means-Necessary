@@ -28,14 +28,22 @@ public class PlayerController : Agent {
     }
 
     void MouseClick() {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit)) {
+            if (hit.collider.tag == "Tile") {
+                Tile t = hit.collider.GetComponent<Tile>();
+                if (t.selectable) {
+                    CheckMoveToTile(t, true);
+                }
+            }
+        }
         if (Input.GetMouseButtonUp(0)) {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
             if (Physics.Raycast(ray, out hit)) {
                 if (hit.collider.tag == "Tile") {
                     Tile t = hit.collider.GetComponent<Tile>();
-                    if(t.selectable) {
-                        MoveToTile(t);
+                    if (t.selectable) {
+                        CheckMoveToTile(t, false);
                     }
                 }
             }
