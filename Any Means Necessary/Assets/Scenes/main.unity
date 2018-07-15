@@ -1484,7 +1484,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalPosition.z
-      value: -1
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalRotation.x
@@ -1529,6 +1529,21 @@ Prefab:
         type: 2}
       propertyPath: maxMove
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: moveSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: jumpUpVelSlow
+      value: 2.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: jumpUpPop
+      value: 0.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
@@ -9705,7 +9720,7 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalPosition.y
@@ -9713,7 +9728,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 1
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 4300480862868962, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}
       propertyPath: m_LocalRotation.x
@@ -9749,6 +9764,21 @@ Prefab:
         type: 2}
       propertyPath: maxMove
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: moveSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: jumpUpVelSlow
+      value: 2.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832138151658074, guid: cf27d2737c5744e41a6fdac052c53695,
+        type: 2}
+      propertyPath: jumpUpPop
+      value: 0.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cf27d2737c5744e41a6fdac052c53695, type: 2}

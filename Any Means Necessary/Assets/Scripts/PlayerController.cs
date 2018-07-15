@@ -23,7 +23,7 @@ public class PlayerController : Agent {
             MouseClick();
         }
         else {
-            Move();
+            Move(true);
         }
     }
 

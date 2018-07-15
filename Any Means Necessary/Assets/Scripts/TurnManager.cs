@@ -16,6 +16,12 @@ public class TurnManager : MonoBehaviour {
 	public delegate void UnitDeselect();
 	public static event UnitDeselect OnUnitDeselect;
 
+    /*
+    * Important Note:
+    * Check any code relating to agents being dead and removing them from turn manager
+    * Agents can be knocked out, but then revived so must be readded
+    */
+
 	void Start() {
 		//Find all tiles in level and add them to GameManager tile list
 		GameManager.tiles = GameObject.FindGameObjectsWithTag("Tile");
@@ -52,7 +58,7 @@ public class TurnManager : MonoBehaviour {
     //start of unit turn
     public static void StartTurn() {
 		if (turnTeam.Count > 0) {
-			if (!turnTeam.Peek().dead) {
+			if (!turnTeam.Peek().knockedout) {
 				if(OnUnitSelect != null && turnKey.Peek() == "Player") {
 					OnUnitSelect(turnTeam.Peek().GetComponent<PlayerController>());
 				}

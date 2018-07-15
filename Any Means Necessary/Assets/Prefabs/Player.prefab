@@ -90,7 +90,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1430622057034394}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 3, y: 1, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 224244194305029940}
@@ -228,14 +228,13 @@ MonoBehaviour:
   actualTargetTile: {fileID: 0}
   unitCanvas: {fileID: 1526278153166904}
   APNumber: {fileID: 114793874252535386}
-  actionPoints: 2
-  move: 3
-  sprint: 5
+  actionPoints: 4
+  maxMove: 3
   jumpHeight: 1
-  moveSpeed: 2
+  moveSpeed: 3
   jumpVelocity: 4.5
-  jumpUpPop: 0.6
-  jumpUpVelSlow: 1.2
+  jumpUpPop: 0.7
+  jumpUpVelSlow: 2.2
   jumpDownPop: 2.7
   jumpDownVelSlow: 2.5
 --- !u!114 &114870478592781582

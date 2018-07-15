@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 public class Agent : MonoBehaviour {
 
-    public List<Actions> actionList = new List<Actions>();
+    //public List<Action> actionList = new List<Action>();
 
     [Header("Debugging Only")]
     [Tooltip("Do Not Assign")]
     public bool turn = false;
     [Tooltip("Do Not Assign")]
-    public bool dead = false;
+    public bool knockedout = false;
 
     List<Tile> selectableTiles = new List<Tile>();
     Tile unreachableTile;
@@ -58,9 +58,15 @@ public class Agent : MonoBehaviour {
     bool fallingDown = false;
     bool jumpingUp = false;
     bool movingToEdge = false;
+    bool isLowerThanJumpTarget = false;
+    bool isHigherThanJumpTarget = false;
+    float targetY;
     Vector3 jumpTarget;
 
     protected int currentActionPoints;
+    private bool hiding = false;
+    private bool haveWallPos = false;
+    private Vector3 wallTargetPos = new Vector3();
 
     //Initialise agents
     protected void Init() {
@@ -94,6 +100,9 @@ public class Agent : MonoBehaviour {
 
     //process the current tile and its adjacent tiles and their adjacent tiles if in move range to find selectable tiles
     public void FindSelectableTiles() {
+        hiding = true;
+        haveWallPos = false;
+
         moveAmount = currentActionPoints;
         if (moveAmount > maxMove) {
             moveAmount = maxMove;
@@ -152,7 +161,7 @@ public class Agent : MonoBehaviour {
         }
     }
 
-    public void Move() {
+    public void Move(bool hide) {
         if (path.Count > 0) {
             Tile t = path.Peek();
             Vector3 targetPos = t.transform.position;
@@ -182,11 +191,43 @@ public class Agent : MonoBehaviour {
             }
         }
         else {
-            RemoveSelectableTiles();
-            moving = false;
+            if (hide && hiding) {
+                WallHide();
+            } else {
+                RemoveSelectableTiles();
+                moving = false;
 
-            //end of move action
-            EndAction();
+                //end of move action
+                EndAction();
+            }
+        }
+    }
+
+    protected void WallHide() {
+        if (!haveWallPos) {
+            RaycastHit hit;
+            Vector3 rayPoint = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
+            if (Physics.Raycast(rayPoint, Vector3.forward, out hit, 2)) {
+                wallTargetPos = new Vector3(transform.position.x, transform.position.y, transform.position.z + 0.65f);
+                haveWallPos = true;
+            } else if (Physics.Raycast(rayPoint, Vector3.back, out hit, 2)) {
+                wallTargetPos = new Vector3(transform.position.x, transform.position.y, transform.position.z - 0.65f);
+                haveWallPos = true;
+            } else if (Physics.Raycast(rayPoint, Vector3.left, out hit, 2)) {
+                wallTargetPos = new Vector3(transform.position.x - 0.65f, transform.position.y, transform.position.z);
+                haveWallPos = true;
+            } else if (Physics.Raycast(rayPoint, Vector3.right, out hit, 2)) {
+                wallTargetPos = new Vector3(transform.position.x + 0.65f, transform.position.y, transform.position.z);
+                haveWallPos = true;
+            } else {
+                hiding = false;
+            }
+        }
+
+        transform.position = transform.position = Vector3.MoveTowards(transform.position, wallTargetPos, moveSpeed * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, wallTargetPos) <= 0.15f) {
+            hiding = false;
         }
     }
 
@@ -224,7 +265,9 @@ public class Agent : MonoBehaviour {
     }
 
     void PrepareJump(Vector3 p_target) {
-        float targetY = p_target.y;
+        isHigherThanJumpTarget = false;
+        isLowerThanJumpTarget = false;
+        targetY = p_target.y;
         p_target.y = transform.position.y;
 
         CalculateHeading(p_target);
@@ -236,19 +279,18 @@ public class Agent : MonoBehaviour {
             movingToEdge = true;
 
             jumpTarget = transform.position + (p_target - transform.position) / 2.0f;
+
+            isHigherThanJumpTarget = true;
         }
         //if lower
         else {
             fallingDown = false;
-            jumpingUp = true;
-            movingToEdge = false;
+            jumpingUp = false;
+            movingToEdge = true;
 
-            //devide velocity to slow down movement while jumping
-            velocity = heading * moveSpeed / jumpUpVelSlow;
+            jumpTarget = transform.position + (p_target - transform.position) / 4.5f;
 
-            float difference = targetY - transform.position.y;
-            //jump velocity
-            velocity.y = jumpVelocity * (jumpUpPop + difference / 2.0f);
+            isLowerThanJumpTarget = true;
         }
     }
 
@@ -281,7 +323,7 @@ public class Agent : MonoBehaviour {
         if (Vector3.Distance(transform.position, jumpTarget) >= 0.05f) {
             SetHorizontalVelocity();
         }
-        else {
+        else if (isHigherThanJumpTarget) {
             movingToEdge = false;
             fallingDown = true;
 
@@ -289,6 +331,17 @@ public class Agent : MonoBehaviour {
             velocity /= jumpDownVelSlow;
             //add small vertical velocity for 'hop' off edge
             velocity.y = jumpDownPop;
+        }
+        else if (isLowerThanJumpTarget) {
+            movingToEdge = false;
+            jumpingUp = true;
+
+            //devide velocity to slow down movement while jumping
+            velocity = heading * moveSpeed / jumpUpVelSlow;
+
+            float difference = targetY - transform.position.y;
+            //jump velocity
+            velocity.y = jumpVelocity * (jumpUpPop + difference / 2.0f);
         }
     }
 
@@ -389,12 +442,12 @@ public class Agent : MonoBehaviour {
         return lowest;
     }
 
-    public void DoAction(Actions p_action) {
+    /*public void DoAction(Action p_action) {
         if (!moving && currentActionPoints > 0) {
-            p_action.DoAction();
+            //p_action.DoAction();
             EndAction();
         }
-    }
+    }*/
 
     void EndAction() {
         APNumber.text = currentActionPoints.ToString();
@@ -416,8 +469,8 @@ public class Agent : MonoBehaviour {
 		turn = false;			
 	}
 
-	public void Died() {
-		dead = true;
+	public void Knockout() {
+		knockedout = true;
 		transform.position = new Vector3(0, 100, 0);
 		TurnManager.EndTurn();
 	}
